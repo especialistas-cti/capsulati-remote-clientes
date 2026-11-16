@@ -24,12 +24,16 @@ on:
       runner_arm:
         description: "Runner do macOS Apple Silicon (troque se faltar capacidade no GitHub)"
         type: choice
-        options: [macos-15, macos-14, macos-26]
+        options: [macos-15, macos-26]
         default: macos-15
       publicar:
         description: "Criar uma release com os instaladores"
         type: boolean
         default: true
+  # Tentativa diária do macOS Apple Silicon às 03h (Brasília), fora do pico de uso dos runners arm64.
+  # Para sozinha assim que existir uma release com .dmg aarch64; depois pode ser removida.
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   contents: write
@@ -92,10 +96,20 @@ jobs:
       - name: Montar matriz
         id: matriz
         env:
-          EDICAO: ${{ inputs.edicao }}
-          PLATAFORMA: ${{ inputs.plataforma }}
+          EDICAO: ${{ inputs.edicao || 'ambas' }}
+          PLATAFORMA: ${{ inputs.plataforma || 'macos-arm' }}
           RUNNER_ARM: ${{ inputs.runner_arm || 'macos-15' }}
+          EVENTO: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "$EVENTO" = schedule ]; then
+            ja=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '[.[].assets[].name | select(test("aarch64[.]dmg$"))] | length')
+            if [ "${ja:-0}" -gt 0 ]; then
+              echo "Já existe release com .dmg Apple Silicon; nada a compilar."
+              { echo 'edicoes=["cliente"]'; echo windows=false; echo macos=false; echo 'macjobs=[{"arch":"nenhum"}]'; } >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
           case "$EDICAO" in
             ambas) echo 'edicoes=["cliente","tecnico"]' >> "$GITHUB_OUTPUT" ;;
             *) echo "edicoes=[\"$EDICAO\"]" >> "$GITHUB_OUTPUT" ;;
@@ -528,7 +542,7 @@ jobs:
   publicar:
     name: Publicar release
     needs: [preparar, windows, macos]
-    if: ${{ always() && inputs.publicar && needs.preparar.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    if: ${{ always() && (github.event_name == 'schedule' || inputs.publicar) && needs.preparar.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-22.04
     steps:
       - name: Baixar instaladores
@@ -539,9 +553,18 @@ jobs:
           merge-multiple: true
 
       - name: Listar
-        run: ls -la instaladores
+        id: lista
+        run: |
+          if compgen -G "instaladores/*" > /dev/null; then
+            ls -la instaladores
+            echo tem=true >> "$GITHUB_OUTPUT"
+          else
+            echo "Nenhum instalador foi gerado (runners indisponíveis?). Nada a publicar."
+            echo tem=false >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Criar release
+        if: steps.lista.outputs.tem == 'true'
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           tag_name: v${{ env.VERSION }}-capsulati.${{ github.run_number }}
@@ -549,7 +572,7 @@ jobs:
           prerelease: true
           body: |
             Clientes Capsula TI baseados no RustDesk ${{ env.VERSION }} (AGPL-3.0).
-            Edição: ${{ inputs.edicao }} · Plataforma: ${{ inputs.plataforma }}.
+            Edição: ${{ inputs.edicao || 'ambas' }} · Plataforma: ${{ inputs.plataforma || 'macos-arm (agendado)' }}.
 
             - **Capsula TI Suporte** (`CapsulaTI-Suporte`): instalar nos computadores atendidos. Só recebe conexões.
             - **Capsula TI Remote** (`CapsulaTI-Remote`): uso da equipe técnica. Só inicia conexões.
