@@ -18,6 +18,11 @@ O que muda:
 import argparse, base64, json, os, re, shutil, sys
 from pathlib import Path
 
+# O console do Windows no Actions usa cp1252 e não imprime "✓" nem acentos.
+for _fluxo in (sys.stdout, sys.stderr):
+    if hasattr(_fluxo, 'reconfigure'):
+        _fluxo.reconfigure(encoding='utf-8', errors='replace')
+
 AQUI = Path(__file__).resolve().parent.parent
 TAG_TESTADA = '1.5.3'
 
