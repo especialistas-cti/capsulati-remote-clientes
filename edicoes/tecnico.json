@@ -1,0 +1,26 @@
+{
+  "capsulati": {
+    "edicao": "tecnico",
+    "nome_exibicao": "Capsula TI Remote",
+    "descricao": "Acesso remoto Capsula TI - tecnico",
+    "bundle_id": "br.com.capsulati.remote",
+    "empresa": "Capsula TI"
+  },
+  "custom": {
+    "app-name": "CapsulaTI-Remote",
+    "conn-type": "outgoing",
+    "override-settings": {
+      "custom-rendezvous-server": "{{HOST}}",
+      "relay-server": "{{HOST}}",
+      "key": "{{KEY}}",
+      "hide-server-settings": "Y",
+      "hide-proxy-settings": "Y",
+      "hide-websocket-settings": "Y",
+      "hide-help-cards": "Y",
+      "hide-powered-by-me": "Y"
+    },
+    "default-settings": {
+      "theme": "light"
+    }
+  }
+}

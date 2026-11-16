@@ -1,0 +1,26 @@
+{
+  "capsulati": {
+    "edicao": "cliente",
+    "nome_exibicao": "Capsula TI Suporte",
+    "descricao": "Acesso remoto Capsula TI - computador atendido",
+    "bundle_id": "br.com.capsulati.suporte",
+    "empresa": "Capsula TI"
+  },
+  "custom": {
+    "app-name": "CapsulaTI-Suporte",
+    "conn-type": "incoming",
+    "override-settings": {
+      "custom-rendezvous-server": "{{HOST}}",
+      "relay-server": "{{HOST}}",
+      "key": "{{KEY}}",
+      "hide-server-settings": "Y",
+      "hide-proxy-settings": "Y",
+      "hide-websocket-settings": "Y",
+      "hide-help-cards": "Y",
+      "hide-powered-by-me": "Y"
+    },
+    "default-settings": {
+      "theme": "light"
+    }
+  }
+}
