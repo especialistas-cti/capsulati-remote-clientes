@@ -19,8 +19,13 @@ on:
       plataforma:
         description: "Plataforma"
         type: choice
-        options: [ambas, windows, macos]
+        options: [ambas, windows, macos, macos-intel, macos-arm]
         default: ambas
+      runner_arm:
+        description: "Runner do macOS Apple Silicon (troque se faltar capacidade no GitHub)"
+        type: choice
+        options: [macos-15, macos-14, macos-26]
+        default: macos-15
       publicar:
         description: "Criar uma release com os instaladores"
         type: boolean
@@ -58,6 +63,7 @@ jobs:
       edicoes: ${{ steps.matriz.outputs.edicoes }}
       windows: ${{ steps.matriz.outputs.windows }}
       macos: ${{ steps.matriz.outputs.macos }}
+      macjobs: ${{ steps.matriz.outputs.macjobs }}
     steps:
       - name: Checkout do RustDesk ${{ env.RUSTDESK_TAG }}
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -85,13 +91,27 @@ jobs:
 
       - name: Montar matriz
         id: matriz
+        env:
+          EDICAO: ${{ inputs.edicao }}
+          PLATAFORMA: ${{ inputs.plataforma }}
+          RUNNER_ARM: ${{ inputs.runner_arm || 'macos-15' }}
         run: |
-          case "${{ inputs.edicao }}" in
+          case "$EDICAO" in
             ambas) echo 'edicoes=["cliente","tecnico"]' >> "$GITHUB_OUTPUT" ;;
-            *) echo 'edicoes=["${{ inputs.edicao }}"]' >> "$GITHUB_OUTPUT" ;;
+            *) echo "edicoes=[\"$EDICAO\"]" >> "$GITHUB_OUTPUT" ;;
           esac
-          [[ "${{ inputs.plataforma }}" != macos ]] && echo windows=true >> "$GITHUB_OUTPUT" || echo windows=false >> "$GITHUB_OUTPUT"
-          [[ "${{ inputs.plataforma }}" != windows ]] && echo macos=true >> "$GITHUB_OUTPUT" || echo macos=false >> "$GITHUB_OUTPUT"
+          intel='{"target":"x86_64-apple-darwin","os":"macos-15-intel","extra-build-args":"","arch":"x86_64","vcpkg-triplet":"x64-osx"}'
+          arm='{"target":"aarch64-apple-darwin","os":"'"$RUNNER_ARM"'","extra-build-args":"--screencapturekit","arch":"aarch64","vcpkg-triplet":"arm64-osx"}'
+          case "$PLATAFORMA" in
+            ambas)       win=true;  mac=true;  jobs="[$intel,$arm]" ;;
+            windows)     win=true;  mac=false; jobs="[$intel,$arm]" ;;
+            macos)       win=false; mac=true;  jobs="[$intel,$arm]" ;;
+            macos-intel) win=false; mac=true;  jobs="[$intel]" ;;
+            macos-arm)   win=false; mac=true;  jobs="[$arm]" ;;
+            *) echo "Plataforma desconhecida: $PLATAFORMA"; exit 1 ;;
+          esac
+          { echo "windows=$win"; echo "macos=$mac"; echo "macjobs=$jobs"; } >> "$GITHUB_OUTPUT"
+          echo "Matriz macOS: $jobs"
 
   ponte:
     # Mesmo job do bridge.yml oficial, com checkout da tag do RustDesk.
@@ -380,9 +400,7 @@ jobs:
       fail-fast: false
       matrix:
         edicao: ${{ fromJSON(needs.preparar.outputs.edicoes) }}
-        job:
-          - { target: x86_64-apple-darwin, os: macos-15-intel, extra-build-args: "", arch: x86_64, vcpkg-triplet: x64-osx }
-          - { target: aarch64-apple-darwin, os: macos-15, extra-build-args: "--screencapturekit", arch: aarch64, vcpkg-triplet: arm64-osx }
+        job: ${{ fromJSON(needs.preparar.outputs.macjobs) }}
     steps:
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6
