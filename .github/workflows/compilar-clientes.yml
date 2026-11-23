@@ -30,10 +30,6 @@ on:
         description: "Criar uma release com os instaladores"
         type: boolean
         default: true
-  # Tentativa diária do macOS Apple Silicon às 03h (Brasília), fora do pico de uso dos runners arm64.
-  # Para sozinha assim que existir uma release com .dmg aarch64; depois pode ser removida.
-  schedule:
-    - cron: "0 6 * * *"
 
 permissions:
   contents: write
