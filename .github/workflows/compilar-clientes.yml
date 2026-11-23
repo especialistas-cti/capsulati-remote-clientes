@@ -30,6 +30,10 @@ on:
         description: "Criar uma release com os instaladores"
         type: boolean
         default: true
+  # Tentativa diária do macOS Apple Silicon às 03h (Brasília), fora do pico de uso dos runners arm64.
+  # Para sozinha assim que existir uma release posterior à correção da chave com .dmg aarch64; depois remover.
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   contents: write
@@ -99,9 +103,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$EVENTO" = schedule ]; then
-            ja=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '[.[].assets[].name | select(test("aarch64[.]dmg$"))] | length')
+            # Só conta releases publicadas (published_at) depois da correção da chave RUSTDESK_KEY (23/11/2026, 16:23 UTC);
+            # o .dmg aarch64 da v1.5.3-capsulati.8 foi compilado com a chave errada.
+            ja=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '[.[] | select((.published_at // "") > "2026-11-23T16:30:00Z") | .assets[].name | select(test("aarch64[.]dmg$"))] | length')
             if [ "${ja:-0}" -gt 0 ]; then
-              echo "Já existe release com .dmg Apple Silicon; nada a compilar."
+              echo "Já existe release nova com .dmg Apple Silicon; nada a compilar."
               { echo 'edicoes=["cliente"]'; echo windows=false; echo macos=false; echo 'macjobs=[{"arch":"nenhum"}]'; } >> "$GITHUB_OUTPUT"
               exit 0
             fi
