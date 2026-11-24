@@ -1,14 +1,16 @@
 # Capsula TI Remote — clientes Windows e macOS
 
-Compila duas edições do RustDesk com a identidade Capsula TI, já apontadas para o servidor da Capsula TI:
+Compila três edições do RustDesk com a identidade Capsula TI, já apontadas para o servidor da Capsula TI:
 
 | Edição | Nome no sistema | Para quem | Conexões |
 |---|---|---|---|
 | **Capsula TI Suporte** | `CapsulaTI-Suporte` | Computadores dos clientes | Só **recebe** (mostra ID e senha) |
 | **Capsula TI Remote** | `CapsulaTI-Remote` | Equipe técnica | Só **inicia** conexões |
+| **Capsula TI Suporte Rápido** | `CapsulaTI-SuporteRapido` | Atendimento avulso, sem instalar (Windows) | Só **recebe**; não instala e não tem Configurações |
 
 Saem do GitHub Actions:
 - **Windows x64:** `.exe` (abre o app e oferece Instalar) e `.msi` (implantação em massa, GPO e Intune).
+- **Suporte Rápido (Windows x64):** só o `.exe` portátil `CapsulaTI-SuporteRapido-VER-x86_64.exe`. Roda sem instalação e sem administrador; ao fechar, nada fica instalado. Para elevar janelas de administrador (UAC), o próprio app pede a permissão na hora.
 - **macOS:** `.dmg` para Apple Silicon (`aarch64`) e Intel (`x86_64`).
 
 Base: RustDesk **1.5.3**, compilado com os mesmos passos do workflow oficial.

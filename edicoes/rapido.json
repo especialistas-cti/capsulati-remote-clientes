@@ -1,0 +1,28 @@
+{
+  "capsulati": {
+    "edicao": "rapido",
+    "nome_exibicao": "Capsula TI Suporte Rápido",
+    "descricao": "Acesso remoto Capsula TI - suporte rapido sem instalacao",
+    "bundle_id": "br.com.capsulati.suporterapido",
+    "empresa": "Capsula TI"
+  },
+  "custom": {
+    "app-name": "CapsulaTI-SuporteRapido",
+    "conn-type": "incoming",
+    "disable-installation": "Y",
+    "disable-settings": "Y",
+    "override-settings": {
+      "custom-rendezvous-server": "{{HOST}}",
+      "relay-server": "{{HOST}}",
+      "key": "{{KEY}}",
+      "hide-server-settings": "Y",
+      "hide-proxy-settings": "Y",
+      "hide-websocket-settings": "Y",
+      "hide-help-cards": "Y",
+      "hide-powered-by-me": "Y"
+    },
+    "default-settings": {
+      "theme": "light"
+    }
+  }
+}

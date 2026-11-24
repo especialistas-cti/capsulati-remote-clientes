@@ -183,7 +183,7 @@ def exportar(meta, custom):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--edicao', required=True, choices=['cliente', 'tecnico'])
+    ap.add_argument('--edicao', required=True, choices=['cliente', 'tecnico', 'rapido'])
     ap.add_argument('--plataforma', required=True, choices=['windows', 'macos', 'todas'])
     ap.add_argument('--host', default=os.environ.get('RUSTDESK_HOST', ''))
     ap.add_argument('--key', default=os.environ.get('RUSTDESK_KEY', ''))
