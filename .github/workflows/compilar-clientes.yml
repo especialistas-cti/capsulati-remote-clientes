@@ -32,6 +32,10 @@ on:
         description: "Criar uma release com os instaladores"
         type: boolean
         default: true
+  # Tentativa diária do Suporte Rápido para macOS Apple Silicon às 03h (Brasília), fora do pico dos runners arm64.
+  # Para sozinha quando existir o .dmg aarch64 do Suporte Rápido numa release; depois remover.
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   contents: write
@@ -95,18 +99,17 @@ jobs:
       - name: Montar matriz
         id: matriz
         env:
-          EDICAO: ${{ inputs.edicao || 'ambas' }}
+          EDICAO: ${{ inputs.edicao || (github.event_name == 'schedule' && 'rapido') || 'ambas' }}
           PLATAFORMA: ${{ inputs.plataforma || 'macos-arm' }}
           RUNNER_ARM: ${{ inputs.runner_arm || 'macos-15' }}
           EVENTO: ${{ github.event_name }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$EVENTO" = schedule ]; then
-            # Só conta releases publicadas (published_at) depois da correção da chave RUSTDESK_KEY (23/11/2026, 16:23 UTC);
-            # o .dmg aarch64 da v1.5.3-capsulati.8 foi compilado com a chave errada.
-            ja=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '[.[] | select((.published_at // "") > "2026-11-23T16:30:00Z") | .assets[].name | select(test("aarch64[.]dmg$"))] | length')
+            # Agendado: só o Suporte Rápido para Apple Silicon, até ele existir numa release.
+            ja=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '[.[] | .assets[].name | select(test("^CapsulaTI-SuporteRapido-.*aarch64[.]dmg$"))] | length')
             if [ "${ja:-0}" -gt 0 ]; then
-              echo "Já existe release nova com .dmg Apple Silicon; nada a compilar."
+              echo "Já existe release com o .dmg Apple Silicon do Suporte Rápido; nada a compilar."
               { echo 'edicoes=["cliente"]'; echo 'edicoes_mac=["cliente"]'; echo windows=false; echo macos=false; echo 'macjobs=[{"arch":"nenhum"}]'; } >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -580,7 +583,7 @@ jobs:
           prerelease: true
           body: |
             Clientes Capsula TI baseados no RustDesk ${{ env.VERSION }} (AGPL-3.0).
-            Edição: ${{ inputs.edicao || 'ambas' }} · Plataforma: ${{ inputs.plataforma || 'macos-arm (agendado)' }}.
+            Edição: ${{ inputs.edicao || (github.event_name == 'schedule' && 'rapido') || 'ambas' }} · Plataforma: ${{ inputs.plataforma || 'macos-arm (agendado)' }}.
 
             - **Capsula TI Suporte** (`CapsulaTI-Suporte`): instalar nos computadores atendidos. Só recebe conexões.
             - **Capsula TI Remote** (`CapsulaTI-Remote`): uso da equipe técnica. Só inicia conexões.
