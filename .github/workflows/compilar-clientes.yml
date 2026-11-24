@@ -1,5 +1,6 @@
 # Compila as edições Capsula TI (Cliente, Técnico e Suporte Rápido) do RustDesk para Windows e macOS.
-# O Suporte Rápido é só Windows: um .exe portátil, sem instalação (disable-installation) e sem .msi.
+# Suporte Rápido: no Windows, um .exe portátil, sem instalação (disable-installation) e sem .msi;
+# no macOS, um .dmg cujo app roda de qualquer pasta (fora de /Applications ele não oferece instalar o serviço).
 # Os passos de compilação são os do workflow oficial do RustDesk 1.5.3
 # (.github/workflows/flutter-build.yml), com a marca aplicada logo após o checkout
 # e sem as etapas de assinatura/publicação da RustDesk.
@@ -110,11 +111,11 @@ jobs:
               exit 0
             fi
           fi
-          # O Suporte Rápido (rapido) só existe para Windows: fica fora da matriz do macOS.
+          # edicoes_mac fica separado para permitir edições só de Windows no futuro.
           case "$EDICAO" in
             ambas)  ed='["cliente","tecnico"]';          edmac='["cliente","tecnico"]' ;;
-            todas)  ed='["cliente","tecnico","rapido"]'; edmac='["cliente","tecnico"]' ;;
-            rapido) ed='["rapido"]';                     edmac='[]' ;;
+            todas)  ed='["cliente","tecnico","rapido"]'; edmac='["cliente","tecnico","rapido"]' ;;
+            rapido) ed='["rapido"]';                     edmac='["rapido"]' ;;
             *)      ed="[\"$EDICAO\"]";                edmac="[\"$EDICAO\"]" ;;
           esac
           { echo "edicoes=$ed"; echo "edicoes_mac=$edmac"; } >> "$GITHUB_OUTPUT"
