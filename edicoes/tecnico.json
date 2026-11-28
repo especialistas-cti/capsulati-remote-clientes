@@ -13,6 +13,7 @@
       "custom-rendezvous-server": "{{HOST}}",
       "relay-server": "{{HOST}}",
       "key": "{{KEY}}",
+      "api-server": "https://remoto.capsulati.com.br",
       "hide-server-settings": "Y",
       "hide-proxy-settings": "Y",
       "hide-websocket-settings": "Y",
