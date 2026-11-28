@@ -32,10 +32,6 @@ on:
         description: "Criar uma release com os instaladores"
         type: boolean
         default: true
-  # Tentativa diária do Suporte Rápido para macOS Apple Silicon às 03h (Brasília), fora do pico dos runners arm64.
-  # Para sozinha quando existir o .dmg aarch64 do Suporte Rápido numa release; depois remover.
-  schedule:
-    - cron: "0 6 * * *"
 
 permissions:
   contents: write
