@@ -121,6 +121,21 @@ def servidor_padrao(host, key):
                f'pub const RS_PUB_KEY: &str = "{key}";', regex=True)
 
 
+def conexao_sem_token():
+    # Com o técnico logado no painel (api-server), o RustDesk manda o access_token ao hbbs e passa a
+    # exigir a troca de chaves TCP (secure_tcp). O hbbs OSS não faz essa troca e a conexão cai com
+    # "Failed to secure tcp: deadline has elapsed". O hbbs OSS também não usa o token; então a conexão
+    # sai sem ele, como acontece sem login. O token continua valendo para o painel (/api).
+    substituir('src/client.rs',
+               '        interface.update_received(false);\n'
+               '        match Self::_start(peer, key, token, conn_type, interface.clone()).await {',
+               '        interface.update_received(false);\n'
+               '        // Capsula TI: hbbs OSS não faz secure_tcp nem usa o token do api-server.\n'
+               '        let _ = token;\n'
+               '        let token = "";\n'
+               '        match Self::_start(peer, key, token, conn_type, interface.clone()).await {')
+
+
 def metadados_windows(meta, app):
     nome, empresa = meta['nome_exibicao'], meta['empresa']
     copyright_ = f'Copyright (C) 2026 {empresa}. Baseado no RustDesk (AGPL-3.0).'
@@ -196,6 +211,7 @@ def main():
     print(f'Aplicando a edição {meta["nome_exibicao"]} ({custom["app-name"]}) — servidor {host}')
     config_embutida(custom)
     servidor_padrao(host, key)
+    conexao_sem_token()
     if args.plataforma in ('windows', 'todas'):
         metadados_windows(meta, custom['app-name'])
     if args.plataforma in ('macos', 'todas'):

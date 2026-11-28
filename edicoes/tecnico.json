@@ -18,7 +18,8 @@
       "hide-proxy-settings": "Y",
       "hide-websocket-settings": "Y",
       "hide-help-cards": "Y",
-      "hide-powered-by-me": "Y"
+      "hide-powered-by-me": "Y",
+      "disable-group-panel": "Y"
     },
     "default-settings": {
       "theme": "light"
